@@ -1,11 +1,12 @@
 const { Card } = require('../models/card');
+const { handleError } = require('../utils/handleError');
 
 async function getCards(req, res) {
   try {
     const cards = await Card.find({});
     res.send(cards);
   } catch (err) {
-    res.status(500).send({ message: err.message });
+    handleError(err, req, res);
   }
 }
 
@@ -16,7 +17,7 @@ async function createCard(req, res) {
     const card = await Card.create({ name, link, owner: ownerId });
     res.send(card);
   } catch (err) {
-    res.status(500).send({ message: err.message });
+    handleError(err, req, res);
   }
 }
 
@@ -33,7 +34,7 @@ async function deleteCard(req, res) {
 
     res.send(card);
   } catch (err) {
-    res.status(500).send({ message: err.message });
+    handleError(err, req, res);
   }
 }
 
@@ -54,7 +55,7 @@ async function likeCard(req, res) {
 
     res.send(card);
   } catch (err) {
-    res.status(500).send({ message: err.message });
+    handleError(err, req, res);
   }
 }
 
@@ -75,7 +76,7 @@ async function dislikeCard(req, res) {
 
     res.send(card);
   } catch (err) {
-    res.status(500).send({ message: err.message });
+    handleError(err, req, res);
   }
 }
 

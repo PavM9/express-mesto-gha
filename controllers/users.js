@@ -1,11 +1,12 @@
 const { User } = require('../models/user');
+const { handleError } = require('../utils/handleError');
 
 async function getUsers(req, res) {
   try {
     const users = await User.find({});
     res.send(users);
   } catch (err) {
-    res.status(500).send({ message: err.message });
+    handleError(err, req, res);
   }
 }
 
@@ -22,7 +23,7 @@ async function getUserById(req, res) {
 
     res.send(user);
   } catch (err) {
-    res.status(500).send({ message: err.message });
+    handleError(err, req, res);
   }
 }
 
@@ -32,7 +33,7 @@ async function createUser(req, res) {
     const user = await User.create({ name, about, avatar });
     res.send(user);
   } catch (err) {
-    res.status(500).send({ message: err.message });
+    handleError(err, req, res);
   }
 }
 
@@ -47,7 +48,7 @@ async function updateUser(req, res) {
     );
     res.send(user);
   } catch (err) {
-    res.status(500).send({ message: err.message });
+    handleError(err, req, res);
   }
 }
 
@@ -62,7 +63,7 @@ async function updateAvatar(req, res) {
     );
     res.send(user);
   } catch (err) {
-    res.status(500).send({ message: err.message });
+    handleError(err, req, res);
   }
 }
 

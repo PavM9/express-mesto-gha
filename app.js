@@ -10,10 +10,10 @@ const app = express();
 mongoose
   .connect(DATABASE_URL)
   .then(() => {
-    console.log(`Connected to database on ${DATABASE_URL}`);
+    console.log(`Подключено к базе данных по адресу ${DATABASE_URL}`);
   })
   .catch((err) => {
-    console.log('Error on database connection');
+    console.log('Ошибка подключения к базе данных');
     console.error(err);
   });
 
@@ -28,5 +28,5 @@ app.use((req, res, next) => {
 app.use(routes);
 
 app.listen(PORT, () => {
-  console.log(`App started on port ${PORT}`);
+  console.log(`Приложение запущено в порте ${PORT}`);
 });
