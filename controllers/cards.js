@@ -23,7 +23,7 @@ async function createCard(req, res) {
 async function deleteCard(req, res) {
   try {
     const { cardId } = req.params;
-    const card = await Card.findById(cardId);
+    const card = await Card.findByIdAndDelete(cardId);
 
     if (!card) {
       const error = new Error('Карточка не найдена');
@@ -37,7 +37,7 @@ async function deleteCard(req, res) {
   }
 }
 
-async function addLike(req, res) {
+async function likeCard(req, res) {
   try {
     const userId = req.user._id;
     const card = await Card.findByIdAndUpdate(
@@ -58,7 +58,7 @@ async function addLike(req, res) {
   }
 }
 
-async function deleteLike(req, res) {
+async function dislikeCard(req, res) {
   try {
     const userId = req.user._id;
     const card = await Card.findByIdAndUpdate(
@@ -79,4 +79,4 @@ async function deleteLike(req, res) {
   }
 }
 
-module.exports = { getCards, createCard, deleteCard, addLike, deleteLike };
+module.exports = { getCards, createCard, deleteCard, likeCard, dislikeCard };
