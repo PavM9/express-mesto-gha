@@ -42,7 +42,7 @@ async function updateUser(req, res) {
     const userId = req.user._id;
     const { name, about } = req.body;
     const user = await User.findByIdAndUpdate(
-      userId,
+      userId.toString(),
       { name, about },
       { new: true, runValidators: true },
     );

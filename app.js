@@ -6,6 +6,7 @@ const { PORT = 3000 } = process.env;
 const DATABASE_URL = 'mongodb://localhost:27017/mestodb';
 
 const app = express();
+const bodyParser = require('body-parser');
 
 mongoose
   .connect(DATABASE_URL)
@@ -25,6 +26,7 @@ app.use((req, res, next) => {
   next();
 });
 
+app.use(bodyParser.urlencoded({ extended: true }));
 app.use(routes);
 
 app.listen(PORT, () => {
