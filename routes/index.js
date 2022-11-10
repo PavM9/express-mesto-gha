@@ -9,7 +9,6 @@ routes.use('/users', users);
 routes.use('/cards', cards);
 routes.all('*', (req, res) => {
   res.status(NOT_FOUND).send({ message: 'Неверный адрес запроса' });
-  return;
 });
 
 module.exports = { routes };
