@@ -1,12 +1,12 @@
 const { User } = require('../models/user');
-const { handleError } = require('../utils/handleError');
+const { BAD_REQUEST, INTERNAL_SERVER_ERROR, NOT_FOUND } = require('../utils/errorCodes');
 
 async function getUsers(req, res) {
   try {
     const users = await User.find({});
     res.send(users);
   } catch (err) {
-    handleError(err, req, res);
+    res.status(INTERNAL_SERVER_ERROR).send('Не найдено');
   }
 }
 
@@ -16,14 +16,17 @@ async function getUserById(req, res) {
     const user = await User.findById(userId);
 
     if (!user) {
-      const error = new Error('Пользователь с данным id не найден');
-      error.name = 'NotFoundError';
-      throw error;
+      res.status(NOT_FOUND).send({ message: 'Пользователь с данным _id не найден' });
+      return;
     }
 
     res.send(user);
   } catch (err) {
-    handleError(err, req, res);
+    if (err.name === 'CastError') {
+      res.status(BAD_REQUEST).send({ message: 'Неверный формат _id' });
+      return;
+    }
+    res.status(INTERNAL_SERVER_ERROR).send({ message: 'Внутренняя ошибка сервера' });
   }
 }
 
@@ -33,7 +36,11 @@ async function createUser(req, res) {
     const user = await User.create({ name, about, avatar });
     res.send(user);
   } catch (err) {
-    handleError(err, req, res);
+    if (err.name === 'ValidationError') {
+      res.status(BAD_REQUEST).send({ message: 'Неверный формат данных' });
+      return;
+    }
+    res.status(INTERNAL_SERVER_ERROR).send({ message: 'Внутренняя ошибка сервера' });
   }
 }
 
@@ -42,13 +49,17 @@ async function updateUser(req, res) {
     const userId = req.user._id;
     const { name, about } = req.body;
     const user = await User.findByIdAndUpdate(
-      userId.toString(),
+      userId,
       { name, about },
       { new: true, runValidators: true },
     );
     res.send(user);
   } catch (err) {
-    handleError(err, req, res);
+    if (err.name === 'ValidationError') {
+      res.status(BAD_REQUEST).send({ message: 'Неверный формат данных' });
+      return;
+    }
+    res.status(INTERNAL_SERVER_ERROR).send({ message: 'Внутренняя ошибка сервера' });
   }
 }
 
@@ -59,11 +70,15 @@ async function updateAvatar(req, res) {
     const user = await User.findByIdAndUpdate(
       userId,
       { avatar },
-      { new: true },
+      { new: true, runValidators: true },
     );
     res.send(user);
   } catch (err) {
-    handleError(err, req, res);
+    if (err.name === 'ValidationError') {
+      res.status(BAD_REQUEST).send({ message: 'Неверный формат данных' });
+      return;
+    }
+    res.status(INTERNAL_SERVER_ERROR).send({ message: 'Внутренняя ошибка сервера' });
   }
 }
 

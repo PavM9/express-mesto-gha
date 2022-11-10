@@ -1,12 +1,12 @@
 const { Card } = require('../models/card');
-const { handleError } = require('../utils/handleError');
+const { BAD_REQUEST, INTERNAL_SERVER_ERROR, NOT_FOUND } = require('../utils/errorCodes');
 
 async function getCards(req, res) {
   try {
     const cards = await Card.find({});
     res.send(cards);
   } catch (err) {
-    handleError(err, req, res);
+    res.status(INTERNAL_SERVER_ERROR).send('Не найдено');
   }
 }
 
@@ -17,7 +17,11 @@ async function createCard(req, res) {
     const card = await Card.create({ name, link, owner: ownerId });
     res.send(card);
   } catch (err) {
-    handleError(err, req, res);
+    if (err.name === 'ValidationError') {
+      res.status(BAD_REQUEST).send({ message: err.message });
+      return;
+    }
+    res.status(INTERNAL_SERVER_ERROR).send('Внутренняя ошибка сервера');
   }
 }
 
@@ -27,14 +31,17 @@ async function deleteCard(req, res) {
     const card = await Card.findByIdAndDelete(cardId);
 
     if (!card) {
-      const error = new Error('Карточка не найдена');
-      error.name = 'NotFoundError';
-      throw error;
+      res.status(NOT_FOUND).send({ message: 'Карточка не найдена' });
+      return;
     }
 
     res.send(card);
   } catch (err) {
-    handleError(err, req, res);
+    if (err.name === 'CastError') {
+      res.status(BAD_REQUEST).send({ message: 'Неверный формат _id' });
+      return;
+    }
+    res.status(INTERNAL_SERVER_ERROR).send({ message: 'Внутренняя ошибка сервера' });
   }
 }
 
@@ -48,14 +55,17 @@ async function likeCard(req, res) {
     );
 
     if (!card) {
-      const error = new Error('Карточка не найдена');
-      error.name = 'NotFoundError';
-      throw error;
+      res.status(NOT_FOUND).send({ message: 'Карточка не найдена' });
+      return;
     }
 
     res.send(card);
   } catch (err) {
-    handleError(err, req, res);
+    if (err.name === 'CastError') {
+      res.status(BAD_REQUEST).send({ message: 'Неверный формат _id' });
+      return;
+    }
+    res.status(INTERNAL_SERVER_ERROR).send({ message: 'Внутренняя ошибка сервера' });
   }
 }
 
@@ -69,14 +79,17 @@ async function dislikeCard(req, res) {
     );
 
     if (!card) {
-      const error = new Error('Карточка не найдена');
-      error.name = 'NotFoundError';
-      throw error;
+      res.status(NOT_FOUND).send({ message: 'Карточка не найдена' });
+      return;
     }
 
     res.send(card);
   } catch (err) {
-    handleError(err, req, res);
+    if (err.name === 'CastError') {
+      res.status(BAD_REQUEST).send({ message: 'Неверный формат _id' });
+      return;
+    }
+    res.status(INTERNAL_SERVER_ERROR).send({ message: 'Внутренняя ошибка сервера' });
   }
 }
 
