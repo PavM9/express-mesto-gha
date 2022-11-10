@@ -93,4 +93,6 @@ async function dislikeCard(req, res) {
   }
 }
 
-module.exports = { getCards, createCard, deleteCard, likeCard, dislikeCard };
+module.exports = {
+  getCards, createCard, deleteCard, likeCard, dislikeCard,
+};

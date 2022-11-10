@@ -82,4 +82,6 @@ async function updateAvatar(req, res) {
   }
 }
 
-module.exports = { getUsers, getUserById, createUser, updateUser, updateAvatar };
+module.exports = {
+  getUsers, getUserById, createUser, updateUser, updateAvatar,
+};
