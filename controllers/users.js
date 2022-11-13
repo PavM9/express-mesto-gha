@@ -1,6 +1,46 @@
 const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 const { User } = require('../models/user');
-const { BAD_REQUEST, INTERNAL_SERVER_ERROR, NOT_FOUND } = require('../utils/errorCodes');
+const {
+  BAD_REQUEST,
+  NOT_AUTH,
+  INTERNAL_SERVER_ERROR,
+  NOT_FOUND,
+} = require('../utils/errorCodes');
+
+async function login(req, res, next) {
+  try {
+    const { email, password } = req.body;
+
+    const user = await User.findOne({ email }).select('+password');
+
+    if (!user) {
+      res.status(NOT_AUTH).send({ message: 'Передан неверный логин или пароль' });
+      return;
+    }
+
+    const hasRightPassword = await bcrypt.compare(password, user.password);
+
+    if (!hasRightPassword) {
+      res.status(NOT_AUTH).send({ message: 'Передан неверный логин или пароль' });
+      return;
+    }
+
+    const token = jwt.sign(
+      {
+        _id: user._id,
+      },
+      'secretkey',
+      {
+        expiresIn: '7d',
+      },
+    );
+
+    res.send({ jwt: token });
+  } catch (err) {
+    next(err);
+  }
+}
 
 async function getUsers(req, res) {
   try {
@@ -93,5 +133,5 @@ async function updateAvatar(req, res) {
 }
 
 module.exports = {
-  getUsers, getUserById, createUser, updateUser, updateAvatar,
+  login, getUsers, getUserById, createUser, updateUser, updateAvatar,
 };
