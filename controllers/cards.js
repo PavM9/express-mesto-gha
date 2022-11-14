@@ -1,5 +1,7 @@
 const { Card } = require('../models/card');
-const { BAD_REQUEST, INTERNAL_SERVER_ERROR, NOT_FOUND } = require('../utils/errorCodes');
+const {
+  OK, BAD_REQUEST, FORBIDDEN, NOT_FOUND, INTERNAL_SERVER_ERROR,
+} = require('../utils/errorCodes');
 
 async function getCards(req, res) {
   try {
@@ -15,9 +17,9 @@ async function createCard(req, res) {
     const { name, link } = req.body;
     const ownerId = req.user._id;
     const card = await Card.create({ name, link, owner: ownerId });
-    res.send(card);
+    res.status(OK).send(card);
   } catch (err) {
-    if (err.name === 'ValidationError') {
+    if (err.name === 'CastError' || err.name === 'ValidationError') {
       res.status(BAD_REQUEST).send({ message: err.message });
       return;
     }
@@ -28,14 +30,21 @@ async function createCard(req, res) {
 async function deleteCard(req, res) {
   try {
     const { cardId } = req.params;
-    const card = await Card.findByIdAndDelete(cardId);
+    const card = await Card.findById(cardId).populate('owner');
 
     if (!card) {
       res.status(NOT_FOUND).send({ message: 'Карточка не найдена' });
       return;
     }
+    const ownerId = card.owner.id;
+    const userId = req.user._id;
 
-    res.send(card);
+    if (ownerId !== userId) {
+      res.status(FORBIDDEN).send({ message: 'Невозможно удалить чужую карточку' });
+      return;
+    }
+    await Card.findByIdAndDelete(cardId);
+    res.status(OK).send(card);
   } catch (err) {
     if (err.name === 'CastError') {
       res.status(BAD_REQUEST).send({ message: 'Неверный формат _id' });
