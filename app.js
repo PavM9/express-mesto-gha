@@ -1,4 +1,5 @@
 const express = require('express');
+const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 const { routes } = require('./routes');
 
@@ -17,14 +18,7 @@ mongoose
     console.error(err);
   });
 
-app.use((req, res, next) => {
-  req.user = {
-    _id: '636aea8e727ce278b4b8a33f',
-  };
-
-  next();
-});
-
+app.use(bodyParser.urlencoded({ extended: false }));
 app.use(routes);
 
 app.listen(PORT, () => {

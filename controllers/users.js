@@ -71,6 +71,26 @@ async function getUserById(req, res) {
   }
 }
 
+async function getCurrentUser(req, res) {
+  try {
+    const { userId } = req.user._id;
+    const user = await User.findById(userId);
+
+    if (!user) {
+      res.status(NOT_FOUND).send({ message: 'Пользователь с данным _id не найден' });
+      return;
+    }
+
+    res.send(user);
+  } catch (err) {
+    if (err.name === 'CastError') {
+      res.status(BAD_REQUEST).send({ message: 'Неверный формат _id' });
+      return;
+    }
+    res.status(INTERNAL_SERVER_ERROR).send({ message: 'Внутренняя ошибка сервера' });
+  }
+}
+
 async function createUser(req, res, next) {
   try {
     const { email, password } = req.body;
@@ -142,5 +162,5 @@ async function updateAvatar(req, res) {
 }
 
 module.exports = {
-  login, getUsers, getUserById, createUser, updateUser, updateAvatar,
+  login, getUsers, getUserById, getCurrentUser, createUser, updateUser, updateAvatar,
 };
