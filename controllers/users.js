@@ -19,9 +19,9 @@ async function login(req, res, next) {
       return;
     }
 
-    const hasRightPassword = await bcrypt.compare(password, user.password);
+    const correctPassword = await bcrypt.compare(password, user.password);
 
-    if (!hasRightPassword) {
+    if (!correctPassword) {
       res.status(NOT_AUTH).send({ message: 'Передан неверный логин или пароль' });
       return;
     }
@@ -71,20 +71,29 @@ async function getUserById(req, res) {
   }
 }
 
-async function createUser(req, res) {
+async function createUser(req, res, next) {
   try {
-    const {
-      email, password, name, about, avatar,
-    } = req.body;
+    const { email, password } = req.body;
+    if (!email || !password) {
+      res.status(BAD_REQUEST).send({ message: 'Не указан логин или пароль' });
+      return;
+    }
+    let user = await User.findOne({ email });
+    if (user) {
+      res.status(409).send({ message: 'Такой пользователь уже зарегистрирован' });
+      return;
+    }
     const hash = await bcrypt.hash(password, 10);
-    const user = await User.create({
+    user = await User.create({
       email,
       password: hash,
-      name,
-      about,
-      avatar,
+      name: req.body.name,
+      about: req.body.about,
+      avatar: req.body.avatar,
     });
-    res.send(user);
+    user = user.toObject();
+    delete user.password;
+    res.status(201).send(user);
   } catch (err) {
     if (err.name === 'ValidationError') {
       res.status(BAD_REQUEST).send({ message: 'Неверный формат данных' });
