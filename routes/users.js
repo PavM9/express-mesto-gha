@@ -6,8 +6,8 @@ const {
 const users = express.Router();
 
 users.get('/', getUsers);
-users.get('/:userId', getUserById);
 users.get('/me', getCurrentUser);
+users.get('/:userId', getUserById);
 users.patch('/me', updateUser);
 users.patch('/me/avatar', updateAvatar);
 
