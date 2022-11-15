@@ -22,7 +22,7 @@ async function createCard(req, res, next) {
     res.send(card);
   } catch (err) {
     if (err.name === 'CastError' || err.name === 'ValidationError') {
-      next(new ValidationError(`Неверный формат данных в ${err.path ?? 'запросе'}`));
+      next(new ValidationError('Неверный формат данных в запросе'));
       return;
     }
     next(err);
@@ -66,7 +66,7 @@ async function likeCard(req, res, next) {
     res.send(card);
   } catch (err) {
     if (err.name === 'CastError' || err.name === 'ValidationError') {
-      next(new ValidationError(`Неверный формат данных в ${err.path ?? 'запросе'}`));
+      next(new ValidationError('Неверный формат данных в запросе'));
       return;
     }
     next(err);
@@ -89,7 +89,7 @@ async function dislikeCard(req, res, next) {
     res.send(card);
   } catch (err) {
     if (err.name === 'CastError' || err.name === 'ValidationError') {
-      next(new ValidationError(`Неверный формат данных в ${err.path ?? 'запросе'}`));
+      next(new ValidationError('Неверный формат данных в запросе'));
       return;
     }
     next(err);

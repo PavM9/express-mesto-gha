@@ -1,45 +1,31 @@
+const { NODE_ENV, JWT_SECRET } = process.env;
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { User } = require('../models/user');
 const {
   ConflictError,
   NotFoundError,
-  AuthError,
   ValidationError,
- } = require('../utils/errors');
+} = require('../utils/errors');
 
-async function login(req, res, next) {
-  try {
-    const { email, password } = req.body;
-
-    const user = await User.findOne({ email }).select('+password');
-
-    if (!user) {
-      next(new AuthError('Передан неверный логин или пароль'));
-      return;
-    }
-
-    const correctPassword = await bcrypt.compare(password, user.password);
-
-    if (!correctPassword) {
-      next(new AuthError('Передан неверный логин или пароль'));
-      return;
-    }
-
-    const token = jwt.sign(
-      {
-        _id: user._id,
-      },
-      'secretkey',
-      {
-        expiresIn: '7d',
-      },
-    );
-
-    res.send({ jwt: token });
-  } catch (err) {
-    next(err);
-  }
+function login(req, res, next) {
+  const { email, password } = req.body;
+  return User.findUserByCredentials(email, password)
+    .then((user) => {
+      const token = jwt.sign(
+        { _id: user._id },
+        NODE_ENV ? JWT_SECRET : 'secretkey',
+        { expiresIn: '7d' },
+      );
+      res
+        .cookie('jwt', token, {
+          maxAge: 3600000 * 24 * 7,
+          httpOnly: true,
+        })
+        .send({ jwt: token })
+        .end();
+    })
+    .catch(next);
 }
 
 async function getUsers(req, res, next) {
@@ -60,10 +46,10 @@ async function getUserById(req, res, next) {
       throw new NotFoundError('Пользователь с данным _id не найден');
     }
 
-    res.send(user);
+    res.status(200).send(user);
   } catch (err) {
     if (err.name === 'CastError' || err.name === 'ValidationError') {
-      next(new ValidationError(`Неверный формат данных в ${err.path ?? 'запросе'}`));
+      next(new ValidationError('Неверный формат данных в запросе'));
       return;
     }
     next(err);
@@ -71,19 +57,18 @@ async function getUserById(req, res, next) {
 }
 
 async function getCurrentUser(req, res, next) {
-  const userId  = req.user._id;
   try {
-    // const { userId } = req.user._id;
+    const { userId } = req.user._id;
     const user = await User.findById(userId);
 
     if (!user) {
       throw new NotFoundError('Пользователь с данным _id не найден');
     }
 
-    res.status(200).send(user);
+    res.send(user);
   } catch (err) {
-    if (err.name === 'CastError' || err.name === 'ValidationError') {
-      next(new ValidationError(`Неверный формат данных в ${err.path ?? 'запросе'}`));
+    if (err.name === 'CastError') {
+      next(new ValidationError('Неверный формат данных в запросе'));
       return;
     }
     next(err);

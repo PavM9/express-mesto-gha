@@ -1,5 +1,6 @@
 const express = require('express');
 const { celebrate, Joi } = require('celebrate');
+const { validateUrl } = require('../utils/utils');
 const { users } = require('./users');
 const { cards } = require('./cards');
 const { login, createUser } = require('../controllers/users');
@@ -14,7 +15,7 @@ routes.post(
   '/signin',
   celebrate({
     body: Joi.object().keys({
-      email: Joi.string().email().required(),
+      email: Joi.string().required().email(),
       password: Joi.string().required(),
     }),
   }),
@@ -29,7 +30,7 @@ routes.post(
       password: Joi.string().required(),
       name: Joi.string().min(2).max(30),
       about: Joi.string().min(2).max(30),
-      avatar: Joi.string().regex(/https?:\/\/(www)?[0-9a-z\-._~:/?#[\]@!$&'()*+,;=]+#?$/i),
+      avatar: Joi.string().custom(validateUrl),
     }),
   }),
   createUser,
