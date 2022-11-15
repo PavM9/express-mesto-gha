@@ -46,7 +46,7 @@ async function getUserById(req, res, next) {
       throw new NotFoundError('Пользователь с данным _id не найден');
     }
 
-    res.status(200).send(user);
+    res.send(user);
   } catch (err) {
     if (err.name === 'CastError' || err.name === 'ValidationError') {
       next(new ValidationError('Неверный формат данных в запросе'));
@@ -58,8 +58,9 @@ async function getUserById(req, res, next) {
 
 async function getCurrentUser(req, res, next) {
   try {
-    const { userId } = req.user._id;
+    const userId = req.user._id;
     const user = await User.findById(userId);
+    console.log(userId);
 
     if (!user) {
       throw new NotFoundError('Пользователь с данным _id не найден');
@@ -94,7 +95,7 @@ async function createUser(req, res, next) {
     });
   } catch (err) {
     if (err.name === 'MongoServerError' && err.code === 11000) {
-      next(new ConflictError('Пользователь с таким Email уже существует'));
+      next(new ConflictError('Пользователь с таким логином уже существует'));
     } else {
       next(err);
     }
