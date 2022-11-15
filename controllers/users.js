@@ -60,7 +60,6 @@ async function getCurrentUser(req, res, next) {
   try {
     const userId = req.user._id;
     const user = await User.findById(userId);
-    console.log(userId);
 
     if (!user) {
       throw new NotFoundError('Пользователь с данным _id не найден');
