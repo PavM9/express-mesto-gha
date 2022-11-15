@@ -15,13 +15,15 @@ async function login(req, res, next) {
     const user = await User.findOne({ email }).select('+password');
 
     if (!user) {
-      throw new AuthError('Передан неверный логин или пароль');
+      next(new AuthError('Передан неверный логин или пароль'));
+      return;
     }
 
     const correctPassword = await bcrypt.compare(password, user.password);
 
     if (!correctPassword) {
-      throw new AuthError('Передан неверный логин или пароль');
+      next(new AuthError('Передан неверный логин или пароль'));
+      return;
     }
 
     const token = jwt.sign(
@@ -89,31 +91,40 @@ async function getCurrentUser(req, res, next) {
 
 async function createUser(req, res, next) {
   try {
-    const { email, password } = req.body;
-    if (!email || !password) {
-      throw new ValidationError('Не указан логин или пароль');
-    }
+    const { email, password, name, about, avatar } = req.body;
+    // let user = await User.findOne({ email })
+    // if (user) {
+    //   next(new ConflictError('Пользователь с таким логином уже зарегистрирвоан'));
+    //   return;
+    // }
     const hash = await bcrypt.hash(password, 10);
 
     let user = await User.create({
       email,
       password: hash,
-      name: req.body.name,
-      about: req.body.about,
-      avatar: req.body.avatar,
+      name,
+      about,
+      avatar,
     });
-    user = user.toObject();
-    delete user.password;
-    res.status(201).send(user);
+    // user = user.toObject();
+    // delete user.password;
+    res.status(200).send(user);
   } catch (err) {
-    if (err.name === 'CastError' || err.name === 'ValidationError') {
-      next(new ValidationError(`Неверный формат данных в ${err.path ?? 'запросе'}`));
-      return;
+    if (err.name === 'MongoError' && err.code === 11000) {
+      // next(new ConflictError('Пользователь с таким email уже существует'));
+      // return;
+      res.status(409).send({ message: 'Данный email уже есть в базе.' });
     }
-    if (err.code === 11000) {
-      next(new ConflictError('Пользователь с таким email уже существует'));
-      return;
-    }
+    // if (err.name === 'CastError' || err.name === 'ValidationError') {
+    //   next(new ValidationError(`Неверный формат данных в ${err.path ?? 'запросе'}`));
+    //   return;
+      // throw new ValidationError(`Неверный формат данных в ${err.path ?? 'запросе'}`);
+    // } else if (err.name === 'MongoError' && err.code === 11000) {
+    //   next(new ConflictError('Пользователь с таким email уже существует'));
+    //   return;
+    //   // throw new ConflictError('Пользователь с таким email уже существует');
+
+    // }
     next(err);
   }
 }
