@@ -4,7 +4,6 @@ const { AuthError } = require('../utils/errors');
 function auth(req, res, next) {
   try {
     const { authorization } = req.headers;
-    console.log(req.headers);
 
     if (!authorization || !authorization.startsWith('Bearer ')) {
       throw new AuthError('Необходима авторизация');
@@ -20,7 +19,6 @@ function auth(req, res, next) {
     }
 
     req.user = payload;
-    console.log(payload);
     next();
   } catch (err) {
     next(err);
