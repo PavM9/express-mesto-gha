@@ -1,6 +1,6 @@
 const express = require('express');
 const { celebrate, Joi } = require('celebrate');
-const { ObjectId } = require('mongoose').Types;
+const { validateUrl } = require('../utils/utils');
 
 const {
   getCards, createCard, deleteCard, likeCard, dislikeCard,
@@ -8,12 +8,7 @@ const {
 
 const validationConfig = {
   params: Joi.object().keys({
-    cardId: Joi.string().required().custom((value, err) => {
-      if (ObjectId.isValid(value)) {
-        return value;
-      }
-      return err.message('Некорректный формат _id');
-    }),
+    cardId: Joi.string().length(24).hex(),
   }),
 };
 
@@ -21,18 +16,12 @@ const cards = express.Router();
 
 cards.get('/', getCards);
 
-cards.post(
-  '/',
-  celebrate({
-    body: Joi.object().keys({
-      name: Joi.string().required().min(2).max(30),
-      link: Joi.string()
-        .required()
-        .regex(/https?:\/\/(www)?[0-9a-z\-._~:/?#[\]@!$&'()*+,;=]+#?$/i),
-    }),
+cards.post('/', celebrate({
+  body: Joi.object().keys({
+    name: Joi.string().required().min(2).max(30),
+    link: Joi.string().required().custom(validateUrl),
   }),
-  createCard,
-);
+}), createCard);
 
 cards.delete('/:cardId', celebrate(validationConfig), deleteCard);
 cards.put('/:cardId/likes', celebrate(validationConfig), likeCard);

@@ -71,15 +71,16 @@ async function getUserById(req, res, next) {
 }
 
 async function getCurrentUser(req, res, next) {
+  const userId  = req.user._id;
   try {
-    const { userId } = req.user._id;
+    // const { userId } = req.user._id;
     const user = await User.findById(userId);
 
     if (!user) {
       throw new NotFoundError('Пользователь с данным _id не найден');
     }
 
-    res.send(user);
+    res.status(200).send(user);
   } catch (err) {
     if (err.name === 'CastError' || err.name === 'ValidationError') {
       next(new ValidationError(`Неверный формат данных в ${err.path ?? 'запросе'}`));
@@ -90,42 +91,28 @@ async function getCurrentUser(req, res, next) {
 }
 
 async function createUser(req, res, next) {
+  const {
+    email, password, name, about, avatar,
+  } = req.body;
   try {
-    const { email, password, name, about, avatar } = req.body;
-    // let user = await User.findOne({ email })
-    // if (user) {
-    //   next(new ConflictError('Пользователь с таким логином уже зарегистрирвоан'));
-    //   return;
-    // }
-    const hash = await bcrypt.hash(password, 10);
-
-    let user = await User.create({
-      email,
-      password: hash,
-      name,
-      about,
-      avatar,
+    const hashPassword = await bcrypt.hash(password, 10);
+    const user = await User.create({
+      email, password: hashPassword, name, about, avatar,
     });
-    // user = user.toObject();
-    // delete user.password;
-    res.status(200).send(user);
+    res.status(200).send({
+      user: {
+        email: user.email,
+        name: user.name,
+        about: user.about,
+        avatar: user.avatar,
+      },
+    });
   } catch (err) {
-    if (err.name === 'MongoError' && err.code === 11000) {
-      // next(new ConflictError('Пользователь с таким email уже существует'));
-      // return;
-      res.status(409).send({ message: 'Данный email уже есть в базе.' });
+    if (err.name === 'MongoServerError' && err.code === 11000) {
+      next(new ConflictError('Пользователь с таким Email уже существует'));
+    } else {
+      next(err);
     }
-    // if (err.name === 'CastError' || err.name === 'ValidationError') {
-    //   next(new ValidationError(`Неверный формат данных в ${err.path ?? 'запросе'}`));
-    //   return;
-      // throw new ValidationError(`Неверный формат данных в ${err.path ?? 'запросе'}`);
-    // } else if (err.name === 'MongoError' && err.code === 11000) {
-    //   next(new ConflictError('Пользователь с таким email уже существует'));
-    //   return;
-    //   // throw new ConflictError('Пользователь с таким email уже существует');
-
-    // }
-    next(err);
   }
 }
 

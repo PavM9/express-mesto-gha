@@ -1,6 +1,6 @@
 const express = require('express');
 const { celebrate, Joi } = require('celebrate');
-const { ObjectId } = require('mongoose').Types;
+const { validateUrl } = require('../utils/utils');
 
 const {
   getUsers, getUserById, getCurrentUser, updateUser, updateAvatar,
@@ -13,12 +13,7 @@ users.get('/me', getCurrentUser);
 
 users.get('/:userId', celebrate({
   params: Joi.object().keys({
-    userId: Joi.string().required().custom((value, err) => {
-      if (ObjectId.isValid(value)) {
-        return value;
-      }
-      return err.message('Некорректный формат _id');
-    }),
+    userId: Joi.string().length(24).hex(),
   }),
 }), getUserById);
 
@@ -37,9 +32,7 @@ users.patch(
   '/me/avatar',
   celebrate({
     body: Joi.object().keys({
-      avatar: Joi.string().regex(
-        /https?:\/\/(www)?[0-9a-z\-._~:/?#[\]@!$&'()*+,;=]+#?$/i,
-      ),
+      avatar: Joi.string().min(2).custom(validateUrl),
     }),
   }),
   updateAvatar,
