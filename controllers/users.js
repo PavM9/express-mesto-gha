@@ -5,7 +5,7 @@ const { User } = require('../models/user');
 const {
   ConflictError,
   NotFoundError,
-  ValidationError,
+  BadRequestError,
 } = require('../utils/errors');
 
 function login(req, res, next) {
@@ -22,8 +22,7 @@ function login(req, res, next) {
           maxAge: 3600000 * 24 * 7,
           httpOnly: true,
         })
-        .send({ jwt: token })
-        .end();
+        .send({ jwt: token });
     })
     .catch(next);
 }
@@ -48,8 +47,8 @@ async function getUserById(req, res, next) {
 
     res.send(user);
   } catch (err) {
-    if (err.name === 'CastError' || err.name === 'ValidationError') {
-      next(new ValidationError('Неверный формат данных в запросе'));
+    if (err.name === 'CastError') {
+      next(new BadRequestError('Неверный формат данных в запросе'));
       return;
     }
     next(err);
@@ -68,7 +67,7 @@ async function getCurrentUser(req, res, next) {
     res.send(user);
   } catch (err) {
     if (err.name === 'CastError') {
-      next(new ValidationError('Неверный формат данных в запросе'));
+      next(new BadRequestError('Неверный формат данных в запросе'));
       return;
     }
     next(err);

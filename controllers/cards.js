@@ -2,7 +2,7 @@ const { Card } = require('../models/card');
 const {
   ForbiddenError,
   NotFoundError,
-  ValidationError,
+  BadRequestError,
 } = require('../utils/errors');
 
 async function getCards(req, res, next) {
@@ -21,8 +21,8 @@ async function createCard(req, res, next) {
     const card = await Card.create({ name, link, owner: ownerId });
     res.send(card);
   } catch (err) {
-    if (err.name === 'CastError' || err.name === 'ValidationError') {
-      next(new ValidationError('Неверный формат данных в запросе'));
+    if (err.name === 'ValidationError') {
+      next(new BadRequestError('Неверный формат данных в запросе'));
       return;
     }
     next(err);
@@ -43,7 +43,7 @@ async function deleteCard(req, res, next) {
     if (ownerId !== userId) {
       throw new ForbiddenError('Невозможно удалить чужую карточку');
     }
-    await Card.findByIdAndDelete(cardId);
+    await card.remove();
     res.send(card);
   } catch (err) {
     next(err);
@@ -65,8 +65,8 @@ async function likeCard(req, res, next) {
 
     res.send(card);
   } catch (err) {
-    if (err.name === 'CastError' || err.name === 'ValidationError') {
-      next(new ValidationError('Неверный формат данных в запросе'));
+    if (err.name === 'CastError') {
+      next(new BadRequestError('Неверный формат данных в запросе'));
       return;
     }
     next(err);
@@ -88,8 +88,8 @@ async function dislikeCard(req, res, next) {
 
     res.send(card);
   } catch (err) {
-    if (err.name === 'CastError' || err.name === 'ValidationError') {
-      next(new ValidationError('Неверный формат данных в запросе'));
+    if (err.name === 'CastError') {
+      next(new BadRequestError('Неверный формат данных в запросе'));
       return;
     }
     next(err);
